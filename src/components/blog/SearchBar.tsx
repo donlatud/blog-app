@@ -19,7 +19,7 @@ export function SearchBar({
   id,
   value,
   defaultValue = "",
-  placeholder = "ค้นหาบทความ...",
+  placeholder = "Search articles...",
   onChange,
   onSubmit,
   className,
@@ -41,7 +41,7 @@ export function SearchBar({
       className={cn("relative", className)}
     >
       <label htmlFor={id} className="sr-only">
-        ค้นหาบทความ
+        Search articles
       </label>
       <input
         id={id}
@@ -56,7 +56,7 @@ export function SearchBar({
       <button
         type="submit"
         className="absolute top-1/2 right-3 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
-        aria-label="ค้นหา"
+        aria-label="Search"
       >
         <Search className="size-4" aria-hidden />
       </button>

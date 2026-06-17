@@ -13,6 +13,7 @@ type ApiErrorBody = {
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
@@ -29,7 +30,7 @@ export function toApiError(error: unknown): ApiError {
     const message =
       error.response?.data?.error?.message ??
       error.message ??
-      "เกิดข้อผิดพลาดในการเชื่อมต่อ API";
+      "Failed to connect to API";
 
     return new ApiError(status, code, message);
   }
@@ -38,5 +39,5 @@ export function toApiError(error: unknown): ApiError {
     return new ApiError(500, "UNKNOWN_ERROR", error.message);
   }
 
-  return new ApiError(500, "UNKNOWN_ERROR", "เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ");
+  return new ApiError(500, "UNKNOWN_ERROR", "An unknown error occurred");
 }

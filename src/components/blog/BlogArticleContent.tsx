@@ -20,7 +20,7 @@ export function BlogArticleContent({ content }: BlogArticleContentProps) {
             </p>
           ))
         ) : (
-          <p className="text-body text-muted-foreground">ไม่มีเนื้อหาบทความ</p>
+          <p className="text-body text-muted-foreground">No article content available.</p>
         )}
       </div>
     </PageContainer>
