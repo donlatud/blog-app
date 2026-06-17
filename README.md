@@ -1,36 +1,52 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Blog App (Frontend)
+
+Next.js frontend สำหรับระบบ Blog — เรียก REST API จาก [`blog-app-server`](../blog-app-server) (Express + Supabase)
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+cp .env.example .env
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+เปิด [http://localhost:3000](http://localhost:3000) — ต้องรัน backend (`blog-app-server`) และ seed ข้อมูลใน Supabase ก่อน (ดูด้านล่าง)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+ตัวแปรสำคัญ:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| ตัวแปร | ค่าเริ่มต้น (local) |
+|---|---|
+| `NEXT_PUBLIC_API_URL` | `http://localhost:4000` |
 
-## Learn More
+## Pagination (10 รายการต่อหน้า)
 
-To learn more about Next.js, take a look at the following resources:
+โจทย์ take-home กำหนด **pagination หน้าละ 10 รายการ** — frontend ใช้ `BLOG_PAGE_SIZE = 10` ใน [`src/constants/config.ts`](src/constants/config.ts) ให้ตรงกับ `PAGINATION.DEFAULT_LIMIT` ฝั่ง backend (`GET /api/blogs?limit=10`)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+หน้ารวม blog ใช้ grid **2 คอลัมน์บน tablet/desktop** (`sm:grid-cols-2`) คู่กับ pagination **10 รายการต่อหน้า** — ได้ 5 แถวเต็ม (2×5) ไม่มีการ์ดเดี่ยวแถวสุดท้าย และยังตรง take-home spec
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+ถ้าต่อ API จริง ให้ส่ง `page` และ `limit=10` ไปที่ backend แล้วใช้ `meta.totalPages` จาก response
 
-## Deploy on Vercel
+### เชื่อม Backend (Feature 1)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. รัน `blog-app-server` ที่ port 4000
+2. ใน Supabase SQL Editor: `schema.sql` แล้วตามด้วย `blog-app-server/supabase/seed.sql`
+3. ตั้ง `NEXT_PUBLIC_API_URL=http://localhost:4000` ใน `.env` แทนการ slice ฝั่ง client
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## โครงสร้างหลัก
+
+```
+src/
+├─ app/page.tsx              # หน้า Landing
+├─ components/
+│  ├─ landing/               # LandingHero, LandingPageView
+│  ├─ blog/                  # BlogCard, BlogGrid, SearchBar, Pagination
+│  └─ layout/                # SiteHeader, SiteFooter, PageContainer
+├─ constants/config.ts       # API URL, BLOG_PAGE_SIZE
+└─ types/blog.ts
+```
+
+รายละเอียด flow ทั้งระบบ: [`blog-app-flow.MD`](blog-app-flow.MD) (local only)
+
+## Deploy
+
+Deploy แยกจาก backend บน Vercel — ตั้ง `NEXT_PUBLIC_API_URL` เป็น URL ของ API production
