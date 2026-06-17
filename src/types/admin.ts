@@ -19,3 +19,38 @@ export type AdminBlogListResponse = {
   data: AdminBlogListItem[];
   meta: PaginationMeta;
 };
+
+export type AdminBlogImage = {
+  id?: string;
+  imageUrl: string;
+  position: number;
+};
+
+export type AdminBlogDetail = {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  content: string;
+  coverImageUrl: string;
+  status: BlogStatus;
+  viewCount: number;
+  publishedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  images: AdminBlogImage[];
+};
+
+export type AdminBlogPayload = {
+  title: string;
+  slug: string;
+  excerpt: string;
+  content: string;
+  coverImageUrl: string;
+  status: BlogStatus;
+  images: AdminBlogImage[];
+};
+
+export type AdminBlogResponse = {
+  data: AdminBlogDetail;
+};

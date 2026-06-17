@@ -1,6 +1,6 @@
 import Image from "next/image";
-import { Eye, EyeOff, Pencil, Trash2 } from "lucide-react";
 
+import { AdminBlogRowActions } from "@/components/admin/AdminBlogRowActions";
 import { formatAdminDate } from "@/lib/format-date";
 import type { AdminBlogListItem } from "@/types/admin";
 
@@ -93,39 +93,7 @@ export function AdminBlogTable({ blogs }: AdminBlogTableProps) {
                 {blog.viewCount.toLocaleString("en-US")}
               </td>
               <td className="px-6 py-4">
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    disabled
-                    aria-label={`Edit ${blog.title}`}
-                    className="rounded-md p-2 text-muted-foreground opacity-50"
-                    title="Coming in Feature 6"
-                  >
-                    <Pencil aria-hidden="true" className="size-4" />
-                  </button>
-                  <button
-                    type="button"
-                    disabled
-                    aria-label={`Toggle visibility for ${blog.title}`}
-                    className="rounded-md p-2 text-muted-foreground opacity-50"
-                    title="Coming in Feature 6"
-                  >
-                    {blog.status === "published" ? (
-                      <EyeOff aria-hidden="true" className="size-4" />
-                    ) : (
-                      <Eye aria-hidden="true" className="size-4" />
-                    )}
-                  </button>
-                  <button
-                    type="button"
-                    disabled
-                    aria-label={`Delete ${blog.title}`}
-                    className="rounded-md p-2 text-destructive opacity-50"
-                    title="Coming in Feature 6"
-                  >
-                    <Trash2 aria-hidden="true" className="size-4" />
-                  </button>
-                </div>
+                <AdminBlogRowActions blog={blog} />
               </td>
             </tr>
           ))}
