@@ -9,9 +9,9 @@ import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { label: "Browse", href: "/", active: true },
-  { label: "Latest", href: "/?sort=latest", active: false },
-  { label: "Topics", href: "/?view=topics", active: false },
+  { label: "Browse", href: "/", key: "browse" as const },
+  { label: "Latest", href: "/?sort=latest", key: "latest" as const },
+  { label: "Topics", href: "/?view=topics", key: "topics" as const },
 ] as const;
 
 type SiteHeaderProps = {
@@ -19,6 +19,7 @@ type SiteHeaderProps = {
   onSearchChange?: (value: string) => void;
   onSearchSubmit?: (value: string) => void;
   signInHref?: string;
+  activeNav?: (typeof navItems)[number]["key"] | null;
   className?: string;
 };
 
@@ -27,6 +28,7 @@ export function SiteHeader({
   onSearchChange,
   onSearchSubmit,
   signInHref = "/login",
+  activeNav = "browse",
   className,
 }: SiteHeaderProps) {
   const searchId = useId();
@@ -52,10 +54,10 @@ export function SiteHeader({
                   href={item.href}
                   className={cn(
                     "text-sm font-medium text-foreground transition-colors hover:text-primary-600",
-                    item.active &&
+                    activeNav === item.key &&
                       "underline decoration-foreground decoration-2 underline-offset-8"
                   )}
-                  aria-current={item.active ? "page" : undefined}
+                  aria-current={activeNav === item.key ? "page" : undefined}
                 >
                   {item.label}
                 </Link>
