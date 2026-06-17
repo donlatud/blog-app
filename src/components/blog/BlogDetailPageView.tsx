@@ -5,9 +5,11 @@ import { useRouter } from "next/navigation";
 
 import { BlogArticleContent } from "@/components/blog/BlogArticleContent";
 import { BlogBreadcrumb } from "@/components/blog/BlogBreadcrumb";
+import { BlogCommentSection } from "@/components/blog/BlogCommentSection";
+import { BlogCoverImage } from "@/components/blog/BlogCoverImage";
 import { BlogDetailHeader } from "@/components/blog/BlogDetailHeader";
 import { BlogDetailMeta } from "@/components/blog/BlogDetailMeta";
-import { BlogGallery } from "@/components/blog/BlogGallery";
+import { BlogImageGrid } from "@/components/blog/BlogImageGrid";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { recordBlogView } from "@/lib/api/blogs";
@@ -62,12 +64,10 @@ export function BlogDetailPageView({ blog }: BlogDetailPageViewProps) {
         <BlogBreadcrumb title={blog.title} />
         <BlogDetailHeader title={blog.title} />
         <BlogDetailMeta publishedAt={blog.publishedAt} viewCount={viewCount} />
-        <BlogGallery
-          title={blog.title}
-          coverImageUrl={blog.coverImageUrl}
-          images={blog.images}
-        />
+        <BlogCoverImage title={blog.title} coverImageUrl={blog.coverImageUrl} />
         <BlogArticleContent content={blog.content} />
+        <BlogImageGrid title={blog.title} images={blog.images} />
+        <BlogCommentSection slug={blog.slug} comments={blog.comments ?? []} />
       </main>
 
       <SiteFooter />

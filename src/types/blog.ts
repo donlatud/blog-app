@@ -16,10 +16,18 @@ export type BlogImage = {
   position: number;
 };
 
+export type BlogComment = {
+  id: string;
+  authorName: string;
+  body: string;
+  createdAt: string;
+};
+
 export type BlogDetail = BlogListItem & {
   content: string;
   viewCount: number;
   images: BlogImage[];
+  comments: BlogComment[];
 };
 
 export type PaginationMeta = {

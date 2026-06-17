@@ -6,6 +6,7 @@ import { useId } from "react";
 import { SearchBar } from "@/components/blog/SearchBar";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { buttonVariants } from "@/components/ui/button";
+import { useAuth } from "@/context/AuthProvider";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -32,12 +33,18 @@ export function SiteHeader({
   className,
 }: SiteHeaderProps) {
   const searchId = useId();
+  const { user, isLoading, logout } = useAuth();
+
+  const handleLogout = async () => {
+    await logout();
+    window.location.href = "/";
+  };
 
   return (
     <header className={cn("w-full border-b border-border bg-background", className)}>
       <PageContainer className="flex flex-col gap-4 py-4 lg:flex-row lg:items-center lg:justify-between lg:gap-8">
         <nav
-          aria-label="เมนูหลัก"
+          aria-label="Main navigation"
           className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between lg:flex-1 lg:justify-start lg:gap-10"
         >
           <Link
@@ -74,12 +81,28 @@ export function SiteHeader({
             onSubmit={onSearchSubmit}
             className="w-full sm:w-64"
           />
-          <Link
-            href={signInHref}
-            className={cn(buttonVariants({ size: "lg" }), "h-10 px-5")}
-          >
-            Sign In
-          </Link>
+
+          {!isLoading && user ? (
+            <div className="flex items-center gap-4">
+              <span className="text-sm font-semibold text-foreground">
+                {user.displayName}
+              </span>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+              >
+                Logout
+              </button>
+            </div>
+          ) : (
+            <Link
+              href={signInHref}
+              className={cn(buttonVariants({ size: "lg" }), "h-10 px-5")}
+            >
+              Sign In
+            </Link>
+          )}
         </div>
       </PageContainer>
     </header>
