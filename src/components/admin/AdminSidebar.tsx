@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import {
   LayoutGrid,
   LogOut,
@@ -10,6 +11,7 @@ import {
 } from "lucide-react";
 
 import { useAuth } from "@/context/AuthProvider";
+import { fetchAdminCommentPendingCount } from "@/lib/api/admin/comments";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -37,6 +39,31 @@ export function AdminSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout } = useAuth();
+  const [pendingCount, setPendingCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    let cancelled = false;
+
+    fetchAdminCommentPendingCount()
+      .then((count) => {
+        if (!cancelled) {
+          setPendingCount(count);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setPendingCount(null);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user, pathname]);
 
   const handleLogout = async () => {
     await logout();
@@ -69,7 +96,14 @@ export function AdminSidebar() {
                   aria-current={isActive ? "page" : undefined}
                 >
                   <Icon aria-hidden="true" className="size-[18px] shrink-0" />
-                  <span>{item.label}</span>
+                  <span className="flex-1">{item.label}</span>
+                  {item.href === "/admin/comments" &&
+                  pendingCount !== null &&
+                  pendingCount > 0 ? (
+                    <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                      {pendingCount}
+                    </span>
+                  ) : null}
                 </Link>
               </li>
             );

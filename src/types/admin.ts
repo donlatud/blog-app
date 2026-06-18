@@ -54,3 +54,36 @@ export type AdminBlogPayload = {
 export type AdminBlogResponse = {
   data: AdminBlogDetail;
 };
+
+export type CommentModerationStatus = "pending" | "approved" | "rejected";
+
+export type AdminCommentStatusFilter = CommentModerationStatus | "all";
+
+export type AdminCommentBlog = {
+  id: string;
+  title: string;
+  slug: string;
+};
+
+export type AdminCommentListItem = {
+  id: string;
+  authorName: string;
+  body: string;
+  status: CommentModerationStatus;
+  createdAt: string;
+  reviewedAt: string | null;
+  blog: AdminCommentBlog | null;
+};
+
+export type AdminCommentListResponse = {
+  data: AdminCommentListItem[];
+  meta: PaginationMeta;
+};
+
+export type AdminCommentResponse = {
+  data: AdminCommentListItem;
+};
+
+export type AdminCommentPendingCountResponse = {
+  data: { count: number };
+};
