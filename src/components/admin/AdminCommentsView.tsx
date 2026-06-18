@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
+import { AdminAlert } from "@/components/admin/AdminAlert";
 import { AdminCommentCard } from "@/components/admin/AdminCommentCard";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -25,6 +26,7 @@ type AdminCommentsViewProps = {
   meta: PaginationMeta;
   status: AdminCommentStatusFilter;
   page: number;
+  error?: string | null;
 };
 
 function buildCommentsHref(status: AdminCommentStatusFilter, page = 1) {
@@ -41,6 +43,7 @@ export function AdminCommentsView({
   meta,
   status,
   page,
+  error = null,
 }: AdminCommentsViewProps) {
   const router = useRouter();
   const start = meta.total === 0 ? 0 : (meta.page - 1) * meta.limit + 1;
@@ -48,11 +51,11 @@ export function AdminCommentsView({
 
   return (
     <>
-      <header className="border-b border-border bg-background px-8 py-6">
+      <header className="border-b border-border bg-background px-4 py-6 sm:px-8">
         <h1 className="text-headline text-2xl">Manage comments</h1>
       </header>
 
-      <section className="flex-1 px-8 py-6">
+        <section className="flex-1 px-4 py-6 sm:px-8">
         <nav
           aria-label="Comment filters"
           className="mb-6 flex flex-wrap gap-6 border-b border-border"
@@ -74,7 +77,9 @@ export function AdminCommentsView({
           ))}
         </nav>
 
-        {comments.length === 0 ? (
+        {error ? <AdminAlert message={error} className="mb-6" /> : null}
+
+        {comments.length === 0 && !error ? (
           <p className="text-body text-sm text-muted-foreground">
             No comments in this category.
           </p>

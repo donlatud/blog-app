@@ -73,6 +73,11 @@ export default async function AdminCommentsPage({
         meta={emptyMeta}
         status={status}
         page={page}
+        error={
+          error instanceof ApiError
+            ? error.message
+            : "Unable to load comments. Please try again."
+        }
       />
     );
   }

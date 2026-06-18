@@ -23,7 +23,7 @@ export default function Loading() {
       <SiteHeader />
       <main className="w-full flex-1 pb-8">
         <LandingHero />
-        <section aria-label="กำลังโหลดรายการบทความ" aria-busy="true">
+        <section aria-label="Loading articles" aria-busy="true">
           <PageContainer className="py-8">
             <ul className="grid list-none grid-cols-1 gap-8 sm:grid-cols-2">
               {Array.from({ length: 4 }).map((_, index) => (

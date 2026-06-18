@@ -68,6 +68,11 @@ export default async function AdminDashboardPage({
         meta={meta}
         status={status}
         page={page}
+        error={
+          error instanceof ApiError
+            ? error.message
+            : "Unable to load articles. Please try again."
+        }
       />
     );
   }

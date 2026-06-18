@@ -35,7 +35,15 @@ const navItems = [
   },
 ] as const;
 
-export function AdminSidebar() {
+type AdminSidebarProps = {
+  mobileOpen?: boolean;
+  onMobileClose?: () => void;
+};
+
+export function AdminSidebar({
+  mobileOpen = false,
+  onMobileClose,
+}: AdminSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout } = useAuth();
@@ -71,7 +79,12 @@ export function AdminSidebar() {
   };
 
   return (
-    <aside className="flex min-h-screen w-64 shrink-0 flex-col border-r border-border bg-background">
+    <aside
+      className={cn(
+        "fixed inset-y-0 left-0 z-50 flex w-64 shrink-0 flex-col border-r border-border bg-background transition-transform duration-200 lg:static lg:translate-x-0",
+        mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+      )}
+    >
       <header className="px-6 pb-2 pt-8">
         <p className="font-heading text-lg font-bold text-foreground">Admin Panel</p>
         <p className="text-meta mt-1 text-sm">Moderator</p>
@@ -87,6 +100,7 @@ export function AdminSidebar() {
               <li key={item.href}>
                 <Link
                   href={item.href}
+                  onClick={onMobileClose}
                   className={cn(
                     "flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-colors",
                     isActive

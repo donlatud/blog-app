@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 
+import { AdminAlert } from "@/components/admin/AdminAlert";
 import { AdminBlogTable } from "@/components/admin/AdminBlogTable";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -21,6 +22,7 @@ type AdminDashboardViewProps = {
   meta: PaginationMeta;
   status: AdminBlogStatusFilter;
   page: number;
+  error?: string | null;
 };
 
 function buildAdminHref(status: AdminBlogStatusFilter, page = 1) {
@@ -37,6 +39,7 @@ export function AdminDashboardView({
   meta,
   status,
   page,
+  error = null,
 }: AdminDashboardViewProps) {
   const router = useRouter();
   const start = meta.total === 0 ? 0 : (meta.page - 1) * meta.limit + 1;
@@ -44,7 +47,7 @@ export function AdminDashboardView({
 
   return (
     <>
-      <header className="flex flex-col gap-4 border-b border-border bg-background px-8 py-6 sm:flex-row sm:items-center sm:justify-between">
+      <header className="flex flex-col gap-4 border-b border-border bg-background px-4 py-6 sm:flex-row sm:items-center sm:justify-between sm:px-8">
         <h1 className="text-headline text-2xl">Dashboard</h1>
         <Link
           href="/admin/blogs/new"
@@ -55,7 +58,7 @@ export function AdminDashboardView({
         </Link>
       </header>
 
-      <section className="flex-1 px-8 py-6">
+      <section className="flex-1 px-4 py-6 sm:px-8">
         <nav aria-label="Article filters" className="mb-6 flex flex-wrap gap-2">
           {tabs.map((tab) => (
             <Link
@@ -73,6 +76,8 @@ export function AdminDashboardView({
             </Link>
           ))}
         </nav>
+
+        {error ? <AdminAlert message={error} className="mb-6" /> : null}
 
         <section className="surface-card overflow-hidden">
           <AdminBlogTable blogs={blogs} />
