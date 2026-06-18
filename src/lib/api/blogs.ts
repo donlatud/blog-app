@@ -1,7 +1,8 @@
-import { BLOG_PAGE_SIZE } from "@/constants/config";
+import { API_BASE_URL, BLOG_PAGE_SIZE } from "@/constants/config";
 import type { BlogDetail, BlogListItem, PaginationMeta } from "@/types/blog";
 
 import { apiClient, toApiError } from "./client";
+import { ApiError } from "@/lib/api/apiError";
 
 type BlogListResponse = {
   data: BlogListItem[];
@@ -53,6 +54,42 @@ export async function fetchBlogBySlug(slug: string): Promise<BlogDetail> {
   } catch (error) {
     throw toApiError(error);
   }
+}
+
+export async function fetchBlogBySlugOnServer(slug: string): Promise<BlogDetail> {
+  const response = await fetch(`${API_BASE_URL}/api/blogs/${encodeURIComponent(slug)}`, {
+    cache: "no-store",
+  });
+
+  const body = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    const code = body?.error?.code ?? "REQUEST_FAILED";
+    const message = body?.error?.message ?? "Request failed";
+    throw new ApiError(response.status, code, message);
+  }
+
+  return (body as BlogDetailResponse).data;
+}
+
+export async function recordBlogViewOnServer(slug: string): Promise<number> {
+  const response = await fetch(
+    `${API_BASE_URL}/api/blogs/${encodeURIComponent(slug)}/view`,
+    {
+      method: "POST",
+      cache: "no-store",
+    }
+  );
+
+  const body = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    const code = body?.error?.code ?? "REQUEST_FAILED";
+    const message = body?.error?.message ?? "Request failed";
+    throw new ApiError(response.status, code, message);
+  }
+
+  return (body as BlogViewResponse).data.viewCount;
 }
 
 export async function recordBlogView(slug: string): Promise<number> {
