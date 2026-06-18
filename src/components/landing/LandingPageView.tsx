@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
 import { BlogGrid } from "@/components/blog/BlogGrid";
@@ -35,6 +35,8 @@ function buildQueryPath(pathname: string, search: string, page: number) {
   return query ? `${pathname}?${query}` : pathname;
 }
 
+const SEARCH_DEBOUNCE_MS = 350;
+
 export function LandingPageView({
   blogs,
   meta,
@@ -46,6 +48,7 @@ export function LandingPageView({
   const pathname = usePathname();
   const [isPending, startTransition] = useTransition();
   const [searchInput, setSearchInput] = useState(search);
+  const skipDebounceRef = useRef(false);
 
   useEffect(() => {
     setSearchInput(search);
@@ -54,11 +57,33 @@ export function LandingPageView({
   const navigate = useCallback(
     (nextSearch: string, nextPage: number) => {
       startTransition(() => {
-        router.push(buildQueryPath(pathname, nextSearch, nextPage));
+        router.replace(buildQueryPath(pathname, nextSearch, nextPage), {
+          scroll: false,
+        });
       });
     },
     [pathname, router]
   );
+
+  useEffect(() => {
+    if (skipDebounceRef.current) {
+      skipDebounceRef.current = false;
+      return;
+    }
+
+    const trimmedInput = searchInput.trim();
+    const trimmedCurrent = search.trim();
+
+    if (trimmedInput === trimmedCurrent) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      navigate(trimmedInput, 1);
+    }, SEARCH_DEBOUNCE_MS);
+
+    return () => window.clearTimeout(timer);
+  }, [searchInput, search, navigate]);
 
   const handleSearchChange = useCallback((value: string) => {
     setSearchInput(value);
@@ -66,7 +91,9 @@ export function LandingPageView({
 
   const handleSearchSubmit = useCallback(
     (value: string) => {
-      navigate(value, 1);
+      skipDebounceRef.current = true;
+      setSearchInput(value);
+      navigate(value.trim(), 1);
     },
     [navigate]
   );
