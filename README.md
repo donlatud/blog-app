@@ -1,36 +1,92 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Blog App (Frontend)
 
-## Getting Started
+Next.js frontend for the Blog System — consumes the REST API from [`blog-app-server`](../blog-app-server) (Express + Supabase).
 
-First, run the development server:
+## Prerequisites
+
+- Node.js 20+
+- Running backend (`blog-app-server`) on port 4000
+- Supabase project with schema + seed data (see backend README)
+
+## Local development
 
 ```bash
+cp .env.example .env
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Variable | Description | Local default |
+|---|---|---|
+| `NEXT_PUBLIC_API_URL` | Backend API base URL (no trailing slash) | `http://localhost:4000` |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Features
 
-## Learn More
+| Route | Description |
+|---|---|
+| `/` | Blog list, search, pagination (10 per page) |
+| `/blog/[slug]` | Article detail, gallery, approved comments |
+| `/login`, `/register` | Member auth |
+| `/admin/login` | Admin-only sign in |
+| `/admin` | Dashboard — article list + CRUD |
+| `/admin/comments` | Comment moderation (approve / reject) |
 
-To learn more about Next.js, take a look at the following resources:
+## Project structure
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+src/
+├─ app/                      # App Router pages
+├─ components/
+│  ├─ admin/                 # Admin panel UI
+│  ├─ auth/                  # Login / register forms
+│  ├─ blog/                  # Blog cards, detail, comments
+│  ├─ landing/               # Home page
+│  └─ layout/                # Header, footer, PageError
+├─ constants/config.ts       # API URL, BLOG_PAGE_SIZE (= 10)
+├─ context/AuthProvider.tsx  # Session state
+├─ lib/api/                  # API clients (server + client)
+└─ types/                    # Shared TypeScript types
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Demo accounts (after seeding)
 
-## Deploy on Vercel
+| Role | Email | Password |
+|---|---|---|
+| Member | `member.demo@gmail.com` | `password123` |
+| Admin | Create in Supabase Auth, then run `seed-admin.sql` | (your choice) |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Deploy to Vercel
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Push this repo to GitHub
+2. Import project in [Vercel](https://vercel.com)
+3. Set environment variable:
+   - `NEXT_PUBLIC_API_URL` = your deployed backend URL (e.g. `https://blog-app-server.vercel.app`)
+4. Deploy
+
+No extra build settings required — framework preset: **Next.js**.
+
+## Supabase Auth redirect URLs
+
+In Supabase Dashboard → **Authentication** → **URL configuration**, add:
+
+| Setting | Value |
+|---|---|
+| Site URL | `https://your-frontend.vercel.app` |
+| Redirect URLs | `http://localhost:3000/**`, `https://your-frontend.vercel.app/**` |
+
+Auth cookies are managed by the Express backend (`httpOnly`), so the frontend does not need Supabase keys.
+
+## Definition of done (core)
+
+- [x] Blog list with search + pagination (10/page)
+- [x] Blog detail: cover, up to 6 images, content, date, view count
+- [x] Comments: Thai/number validation, approved-only display
+- [x] Admin login + route guard
+- [x] Admin CRUD blogs, publish/unpublish, slug editing
+- [x] Admin approve/reject comments (reversible)
+- [x] Member register + login
+- [x] Loading, error, and empty states
+
+Full system spec: [`blog-app-flow.MD`](blog-app-flow.MD) (local reference).

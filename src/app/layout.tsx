@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Be_Vietnam_Pro, Noto_Sans_Thai } from "next/font/google";
+
+import { AuthProvider } from "@/context/AuthProvider";
 import "./globals.css";
 
 const headingFont = Be_Vietnam_Pro({
@@ -16,7 +18,7 @@ const bodyFont = Noto_Sans_Thai({
 
 export const metadata: Metadata = {
   title: "Blog",
-  description: "ระบบ Blog — อ่านบทความและแสดงความคิดเห็น",
+  description: "Blog platform — read articles and share your thoughts",
 };
 
 export default function RootLayout({
@@ -26,10 +28,12 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="th"
+      lang="en"
       className={`${headingFont.variable} ${bodyFont.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <AuthProvider>{children}</AuthProvider>
+      </body>
     </html>
   );
 }
