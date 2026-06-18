@@ -1,8 +1,14 @@
 # Blog App (Frontend)
 
-Next.js frontend สำหรับระบบ Blog — เรียก REST API จาก [`blog-app-server`](../blog-app-server) (Express + Supabase)
+Next.js frontend for the Blog System — consumes the REST API from [`blog-app-server`](../blog-app-server) (Express + Supabase).
 
-## Getting Started
+## Prerequisites
+
+- Node.js 20+
+- Running backend (`blog-app-server`) on port 4000
+- Supabase project with schema + seed data (see backend README)
+
+## Local development
 
 ```bash
 cp .env.example .env
@@ -10,43 +16,77 @@ npm install
 npm run dev
 ```
 
-เปิด [http://localhost:3000](http://localhost:3000) — ต้องรัน backend (`blog-app-server`) และ seed ข้อมูลใน Supabase ก่อน (ดูด้านล่าง)
+Open [http://localhost:3000](http://localhost:3000).
 
-ตัวแปรสำคัญ:
+| Variable | Description | Local default |
+|---|---|---|
+| `NEXT_PUBLIC_API_URL` | Backend API base URL (no trailing slash) | `http://localhost:4000` |
 
-| ตัวแปร | ค่าเริ่มต้น (local) |
+## Features
+
+| Route | Description |
 |---|---|
-| `NEXT_PUBLIC_API_URL` | `http://localhost:4000` |
+| `/` | Blog list, search, pagination (10 per page) |
+| `/blog/[slug]` | Article detail, gallery, approved comments |
+| `/login`, `/register` | Member auth |
+| `/admin/login` | Admin-only sign in |
+| `/admin` | Dashboard — article list + CRUD |
+| `/admin/comments` | Comment moderation (approve / reject) |
 
-## Pagination (10 รายการต่อหน้า)
-
-โจทย์ take-home กำหนด **pagination หน้าละ 10 รายการ** — frontend ใช้ `BLOG_PAGE_SIZE = 10` ใน [`src/constants/config.ts`](src/constants/config.ts) ให้ตรงกับ `PAGINATION.DEFAULT_LIMIT` ฝั่ง backend (`GET /api/blogs?limit=10`)
-
-หน้ารวม blog ใช้ grid **2 คอลัมน์บน tablet/desktop** (`sm:grid-cols-2`) คู่กับ pagination **10 รายการต่อหน้า** — ได้ 5 แถวเต็ม (2×5) ไม่มีการ์ดเดี่ยวแถวสุดท้าย และยังตรง take-home spec
-
-ถ้าต่อ API จริง ให้ส่ง `page` และ `limit=10` ไปที่ backend แล้วใช้ `meta.totalPages` จาก response
-
-### เชื่อม Backend (Feature 1)
-
-1. รัน `blog-app-server` ที่ port 4000
-2. ใน Supabase SQL Editor: `schema.sql` แล้วตามด้วย `blog-app-server/supabase/seed.sql`
-3. ตั้ง `NEXT_PUBLIC_API_URL=http://localhost:4000` ใน `.env` แทนการ slice ฝั่ง client
-
-## โครงสร้างหลัก
+## Project structure
 
 ```
 src/
-├─ app/page.tsx              # หน้า Landing
+├─ app/                      # App Router pages
 ├─ components/
-│  ├─ landing/               # LandingHero, LandingPageView
-│  ├─ blog/                  # BlogCard, BlogGrid, SearchBar, Pagination
-│  └─ layout/                # SiteHeader, SiteFooter, PageContainer
-├─ constants/config.ts       # API URL, BLOG_PAGE_SIZE
-└─ types/blog.ts
+│  ├─ admin/                 # Admin panel UI
+│  ├─ auth/                  # Login / register forms
+│  ├─ blog/                  # Blog cards, detail, comments
+│  ├─ landing/               # Home page
+│  └─ layout/                # Header, footer, PageError
+├─ constants/config.ts       # API URL, BLOG_PAGE_SIZE (= 10)
+├─ context/AuthProvider.tsx  # Session state
+├─ lib/api/                  # API clients (server + client)
+└─ types/                    # Shared TypeScript types
 ```
 
-รายละเอียด flow ทั้งระบบ: [`blog-app-flow.MD`](blog-app-flow.MD) (local only)
+## Demo accounts (after seeding)
 
-## Deploy
+| Role | Email | Password |
+|---|---|---|
+| Member | `member.demo@gmail.com` | `password123` |
+| Admin | Create in Supabase Auth, then run `seed-admin.sql` | (your choice) |
 
-Deploy แยกจาก backend บน Vercel — ตั้ง `NEXT_PUBLIC_API_URL` เป็น URL ของ API production
+## Deploy to Vercel
+
+1. Push this repo to GitHub
+2. Import project in [Vercel](https://vercel.com)
+3. Set environment variable:
+   - `NEXT_PUBLIC_API_URL` = your deployed backend URL (e.g. `https://blog-app-server.vercel.app`)
+4. Deploy
+
+No extra build settings required — framework preset: **Next.js**.
+
+## Supabase Auth redirect URLs
+
+In Supabase Dashboard → **Authentication** → **URL configuration**, add:
+
+| Setting | Value |
+|---|---|
+| Site URL | `https://your-frontend.vercel.app` |
+| Redirect URLs | `http://localhost:3000/**`, `https://your-frontend.vercel.app/**` |
+
+Auth cookies are managed by the Express backend (`httpOnly`), so the frontend does not need Supabase keys.
+
+## Definition of done (core)
+
+- [x] Blog list with search + pagination (10/page)
+- [x] Blog detail: cover, up to 6 images, content, date, view count
+- [x] Comments: Thai/number validation, approved-only display
+- [x] Admin login + route guard
+- [x] Admin CRUD blogs, publish/unpublish, slug editing
+- [x] Admin approve/reject comments (reversible)
+- [x] Member register + login
+- [x] Loading, error, and empty states
+
+Full system spec: [`blog-app-flow.MD`](blog-app-flow.MD) (local reference).
