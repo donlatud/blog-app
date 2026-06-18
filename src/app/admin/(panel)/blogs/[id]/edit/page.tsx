@@ -1,8 +1,6 @@
-import { notFound, redirect } from "next/navigation";
+import { Suspense } from "react";
 
-import { AdminBlogForm } from "@/components/admin/AdminBlogForm";
-import { ApiError } from "@/lib/api/apiError";
-import { fetchAdminBlogById } from "@/lib/api/admin/blogs";
+import { AdminEditBlogLoader } from "@/components/admin/AdminEditBlogLoader";
 
 type AdminEditBlogPageProps = {
   params: Promise<{
@@ -10,27 +8,26 @@ type AdminEditBlogPageProps = {
   }>;
 };
 
-export default async function AdminEditBlogPage({
+async function AdminEditBlogContent({
   params,
-}: AdminEditBlogPageProps) {
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const { id } = await params;
 
-  try {
-    const blog = await fetchAdminBlogById(id);
-    return <AdminBlogForm mode="edit" initialBlog={blog} />;
-  } catch (error) {
-    if (error instanceof ApiError && error.status === 404) {
-      notFound();
-    }
+  return <AdminEditBlogLoader id={id} />;
+}
 
-    if (error instanceof ApiError && error.status === 401) {
-      redirect("/admin/login");
-    }
-
-    if (error instanceof ApiError && error.status === 403) {
-      redirect("/");
-    }
-
-    throw error;
-  }
+export default function AdminEditBlogPage({ params }: AdminEditBlogPageProps) {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex flex-1 items-center justify-center py-24">
+          <p className="text-sm text-muted-foreground">Loading article...</p>
+        </div>
+      }
+    >
+      <AdminEditBlogContent params={params} />
+    </Suspense>
+  );
 }

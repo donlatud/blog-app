@@ -34,7 +34,6 @@ export function AdminLoginForm() {
       }
 
       router.push("/admin");
-      router.refresh();
     } catch (err) {
       setError(
         err instanceof ApiError

@@ -8,24 +8,12 @@ import type {
 } from "@/types/admin";
 
 import { apiClient, toApiError } from "../client";
-import { ApiError } from "@/lib/api/apiError";
-import { API_BASE_URL } from "@/constants/config";
 
 type FetchAdminBlogListParams = {
   page?: number;
   limit?: number;
   status?: AdminBlogStatusFilter;
 };
-
-async function getServerCookieHeader() {
-  const { cookies } = await import("next/headers");
-  const cookieStore = await cookies();
-
-  return cookieStore
-    .getAll()
-    .map((cookie) => `${cookie.name}=${cookie.value}`)
-    .join("; ");
-}
 
 function buildAdminBlogsPath({
   page = 1,
@@ -41,34 +29,28 @@ function buildAdminBlogsPath({
   return `/api/admin/blogs?${params.toString()}`;
 }
 
-async function serverFetch<T>(path: string): Promise<T> {
-  const cookieHeader = await getServerCookieHeader();
-
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    headers: cookieHeader ? { Cookie: cookieHeader } : {},
-    cache: "no-store",
-  });
-
-  const body = await response.json().catch(() => ({}));
-
-  if (!response.ok) {
-    const code = body?.error?.code ?? "REQUEST_FAILED";
-    const message = body?.error?.message ?? "Request failed";
-    throw new ApiError(response.status, code, message);
-  }
-
-  return body as T;
-}
-
 export async function fetchAdminBlogList(
   params: FetchAdminBlogListParams = {}
 ): Promise<AdminBlogListResponse> {
-  return serverFetch<AdminBlogListResponse>(buildAdminBlogsPath(params));
+  try {
+    const { data } = await apiClient.get<AdminBlogListResponse>(
+      buildAdminBlogsPath(params)
+    );
+    return data;
+  } catch (error) {
+    throw toApiError(error);
+  }
 }
 
 export async function fetchAdminBlogById(id: string): Promise<AdminBlogDetail> {
-  const body = await serverFetch<AdminBlogResponse>(`/api/admin/blogs/${id}`);
-  return body.data;
+  try {
+    const { data } = await apiClient.get<AdminBlogResponse>(
+      `/api/admin/blogs/${id}`
+    );
+    return data.data;
+  } catch (error) {
+    throw toApiError(error);
+  }
 }
 
 export async function createAdminBlog(

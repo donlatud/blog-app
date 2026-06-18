@@ -6,6 +6,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -36,15 +37,25 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const authGenerationRef = useRef(0);
 
   const refresh = useCallback(async () => {
+    const generation = authGenerationRef.current;
+
     try {
       const profile = await fetchCurrentUser();
-      setUser(profile);
+
+      if (generation === authGenerationRef.current) {
+        setUser(profile);
+      }
     } catch {
-      setUser(null);
+      if (generation === authGenerationRef.current) {
+        setUser(null);
+      }
     } finally {
-      setIsLoading(false);
+      if (generation === authGenerationRef.current) {
+        setIsLoading(false);
+      }
     }
   }, []);
 
@@ -53,23 +64,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [refresh]);
 
   const login = useCallback(async (email: string, password: string) => {
+    authGenerationRef.current += 1;
     const profile = await loginUser({ email, password });
     setUser(profile);
+    setIsLoading(false);
     return profile;
   }, []);
 
   const register = useCallback(
     async (email: string, password: string, displayName: string) => {
+      authGenerationRef.current += 1;
       const profile = await registerUser({ email, password, displayName });
       setUser(profile);
+      setIsLoading(false);
       return profile;
     },
     []
   );
 
   const logout = useCallback(async () => {
+    authGenerationRef.current += 1;
     await logoutUser();
     setUser(null);
+    setIsLoading(false);
   }, []);
 
   const value = useMemo(
