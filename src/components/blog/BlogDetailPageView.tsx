@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { BlogArticleContent } from "@/components/blog/BlogArticleContent";
@@ -12,7 +12,6 @@ import { BlogDetailMeta } from "@/components/blog/BlogDetailMeta";
 import { BlogImageGrid } from "@/components/blog/BlogImageGrid";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
-import { recordBlogView } from "@/lib/api/blogs";
 import type { BlogDetail } from "@/types/blog";
 
 type BlogDetailPageViewProps = {
@@ -22,22 +21,6 @@ type BlogDetailPageViewProps = {
 export function BlogDetailPageView({ blog }: BlogDetailPageViewProps) {
   const router = useRouter();
   const [searchInput, setSearchInput] = useState("");
-  const [viewCount, setViewCount] = useState(blog.viewCount);
-  const hasRecordedView = useRef(false);
-
-  useEffect(() => {
-    if (hasRecordedView.current) {
-      return;
-    }
-
-    hasRecordedView.current = true;
-
-    recordBlogView(blog.slug)
-      .then((nextCount) => setViewCount(nextCount))
-      .catch(() => {
-        hasRecordedView.current = false;
-      });
-  }, [blog.slug]);
 
   const handleSearchSubmit = useCallback(
     (value: string) => {
@@ -63,7 +46,7 @@ export function BlogDetailPageView({ blog }: BlogDetailPageViewProps) {
       <main className="w-full flex-1 pb-16">
         <BlogBreadcrumb title={blog.title} />
         <BlogDetailHeader title={blog.title} />
-        <BlogDetailMeta publishedAt={blog.publishedAt} viewCount={viewCount} />
+        <BlogDetailMeta publishedAt={blog.publishedAt} viewCount={blog.viewCount} />
         <BlogCoverImage title={blog.title} coverImageUrl={blog.coverImageUrl} />
         <BlogArticleContent content={blog.content} />
         <BlogImageGrid title={blog.title} images={blog.images} />

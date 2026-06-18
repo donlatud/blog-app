@@ -2,7 +2,12 @@ import { notFound } from "next/navigation";
 
 import { BlogDetailPageView } from "@/components/blog/BlogDetailPageView";
 import { ApiError } from "@/lib/api/apiError";
-import { fetchBlogBySlug } from "@/lib/api/blogs";
+import {
+  fetchBlogBySlugOnServer,
+  recordBlogViewOnServer,
+} from "@/lib/api/blogs";
+
+export const dynamic = "force-dynamic";
 
 type BlogDetailPageProps = {
   params: Promise<{
@@ -14,8 +19,16 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
   const { slug } = await params;
 
   try {
-    const blog = await fetchBlogBySlug(slug);
-    return <BlogDetailPageView blog={blog} />;
+    const blog = await fetchBlogBySlugOnServer(slug);
+
+    let viewCount = blog.viewCount;
+    try {
+      viewCount = await recordBlogViewOnServer(slug);
+    } catch {
+      // Keep the count from the initial fetch if increment fails.
+    }
+
+    return <BlogDetailPageView blog={{ ...blog, viewCount }} />;
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) {
       notFound();
