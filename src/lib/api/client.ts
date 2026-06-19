@@ -1,6 +1,6 @@
 import axios, { isAxiosError } from "axios";
 
-import { API_BASE_URL } from "@/constants/config";
+import { API_BASE_URL, AUTH_SESSION_EXPIRED_EVENT } from "@/constants/config";
 
 import { ApiError } from "./apiError";
 
@@ -25,6 +25,12 @@ type RetryableRequestConfig = {
 };
 
 let refreshSessionPromise: Promise<void> | null = null;
+
+function notifySessionExpired() {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event(AUTH_SESSION_EXPIRED_EVENT));
+  }
+}
 
 async function refreshAuthSession(): Promise<void> {
   await apiClient.post("/api/auth/refresh");
@@ -53,8 +59,13 @@ apiClient.interceptors.response.use(
       requestUrl.includes("/api/auth/refresh") ||
       requestUrl.includes("/api/auth/login") ||
       requestUrl.includes("/api/auth/register") ||
-      requestUrl.includes("/api/auth/logout")
+      requestUrl.includes("/api/auth/logout") ||
+      requestUrl.includes("/api/auth/me")
     ) {
+      if (requestUrl.includes("/api/auth/refresh")) {
+        notifySessionExpired();
+      }
+
       return Promise.reject(toApiError(error));
     }
 
@@ -70,6 +81,7 @@ apiClient.interceptors.response.use(
       await refreshSessionPromise;
       return apiClient.request(originalRequest);
     } catch {
+      notifySessionExpired();
       return Promise.reject(toApiError(error));
     }
   }
