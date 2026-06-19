@@ -9,7 +9,6 @@ import { BlogCommentSection } from "@/components/blog/BlogCommentSection";
 import { BlogCoverImage } from "@/components/blog/BlogCoverImage";
 import { BlogDetailHeader } from "@/components/blog/BlogDetailHeader";
 import { BlogDetailMeta } from "@/components/blog/BlogDetailMeta";
-import { BlogImageGrid } from "@/components/blog/BlogImageGrid";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import type { BlogDetail } from "@/types/blog";
@@ -47,9 +46,12 @@ export function BlogDetailPageView({ blog }: BlogDetailPageViewProps) {
         <BlogBreadcrumb title={blog.title} />
         <BlogDetailHeader title={blog.title} />
         <BlogDetailMeta publishedAt={blog.publishedAt} viewCount={blog.viewCount} />
-        <BlogCoverImage title={blog.title} coverImageUrl={blog.coverImageUrl} />
+        <BlogCoverImage
+          title={blog.title}
+          coverImageUrl={blog.coverImageUrl}
+          images={blog.images}
+        />
         <BlogArticleContent content={blog.content} />
-        <BlogImageGrid title={blog.title} images={blog.images} />
         <BlogCommentSection slug={blog.slug} comments={blog.comments ?? []} />
       </main>
 

@@ -9,11 +9,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthProvider";
 import { cn } from "@/lib/utils";
 
-const navItems = [
-  { label: "Browse", href: "/", key: "browse" as const },
-  { label: "Latest", href: "/?sort=latest", key: "latest" as const },
-  { label: "Topics", href: "/?view=topics", key: "topics" as const },
-] as const;
+const navItems = [{ label: "Browse", href: "/", key: "browse" as const }] as const;
 
 type SiteHeaderProps = {
   searchValue?: string;

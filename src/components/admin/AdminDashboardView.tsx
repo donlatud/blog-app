@@ -2,15 +2,15 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 
 import { AdminAlert } from "@/components/admin/AdminAlert";
 import { AdminBlogTable } from "@/components/admin/AdminBlogTable";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { AdminPagination } from "@/components/admin/AdminPagination";
+import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { AdminBlogListItem, AdminBlogStatusFilter } from "@/types/admin";
 import type { PaginationMeta } from "@/types/blog";
-
 const tabs: { label: string; value: AdminBlogStatusFilter }[] = [
   { label: "All", value: "all" },
   { label: "Published", value: "published" },
@@ -23,6 +23,8 @@ type AdminDashboardViewProps = {
   status: AdminBlogStatusFilter;
   page: number;
   error?: string | null;
+  onBlogDeleted: (blogId: string) => void;
+  onBlogUpdated: (blog: AdminBlogListItem) => void;
 };
 
 function buildAdminHref(status: AdminBlogStatusFilter, page = 1) {
@@ -40,6 +42,8 @@ export function AdminDashboardView({
   status,
   page,
   error = null,
+  onBlogDeleted,
+  onBlogUpdated,
 }: AdminDashboardViewProps) {
   const router = useRouter();
   const start = meta.total === 0 ? 0 : (meta.page - 1) * meta.limit + 1;
@@ -80,35 +84,27 @@ export function AdminDashboardView({
         {error ? <AdminAlert message={error} className="mb-6" /> : null}
 
         <section className="surface-card overflow-hidden">
-          <AdminBlogTable blogs={blogs} />
+          <AdminBlogTable
+            blogs={blogs}
+            onBlogDeleted={onBlogDeleted}
+            onBlogUpdated={onBlogUpdated}
+          />
 
-          <footer className="flex flex-col gap-4 border-t border-border px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm text-muted-foreground">
-              Showing {start}-{end} of {meta.total} items
-            </p>
-
-            <nav aria-label="Dashboard pagination" className="flex items-center gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={page <= 1}
-                onClick={() => router.push(buildAdminHref(status, page - 1))}
-              >
-                <ChevronLeft aria-hidden="true" className="size-4" />
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={page >= meta.totalPages}
-                onClick={() => router.push(buildAdminHref(status, page + 1))}
-              >
-                <ChevronRight aria-hidden="true" className="size-4" />
-              </Button>
-            </nav>
-          </footer>
-        </section>
+          {meta.total > 0 ? (
+            <AdminPagination
+              start={start}
+              end={end}
+              total={meta.total}
+              page={page}
+              totalPages={meta.totalPages}
+              itemLabel="items"
+              ariaLabel="Dashboard pagination"
+              onPageChange={(nextPage) =>
+                router.push(buildAdminHref(status, nextPage))
+              }
+              className="border-t border-border px-6 py-4"
+            />
+          ) : null}        </section>
       </section>
     </>
   );

@@ -2,11 +2,10 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { AdminAlert } from "@/components/admin/AdminAlert";
 import { AdminCommentCard } from "@/components/admin/AdminCommentCard";
-import { Button } from "@/components/ui/button";
+import { AdminPagination } from "@/components/admin/AdminPagination";
 import { cn } from "@/lib/utils";
 import type {
   AdminCommentListItem,
@@ -99,39 +98,19 @@ export function AdminCommentsView({
         )}
 
         {meta.total > 0 ? (
-          <footer className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
-            <p className="text-sm text-muted-foreground">
-              Showing {start}-{end} of {meta.total} comments
-            </p>
-
-            <nav aria-label="Comments pagination" className="flex items-center gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={page <= 1}
-                onClick={() => router.push(buildCommentsHref(status, page - 1))}
-                aria-label="Previous page"
-              >
-                <ChevronLeft aria-hidden="true" className="size-4" />
-              </Button>
-
-              <span className="min-w-8 rounded-lg bg-foreground px-3 py-1.5 text-center text-sm font-medium text-background">
-                {page}
-              </span>
-
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={page >= meta.totalPages}
-                onClick={() => router.push(buildCommentsHref(status, page + 1))}
-                aria-label="Next page"
-              >
-                <ChevronRight aria-hidden="true" className="size-4" />
-              </Button>
-            </nav>
-          </footer>
+          <AdminPagination
+            start={start}
+            end={end}
+            total={meta.total}
+            page={page}
+            totalPages={meta.totalPages}
+            itemLabel="comments"
+            ariaLabel="Comments pagination"
+            onPageChange={(nextPage) =>
+              router.push(buildCommentsHref(status, nextPage))
+            }
+            className="mt-8"
+          />
         ) : null}
       </section>
     </>

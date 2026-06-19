@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 import { AdminDashboardView } from "@/components/admin/AdminDashboardView";
@@ -71,6 +71,57 @@ export function AdminDashboardLoader() {
     };
   }, [page, status]);
 
+  const handleBlogDeleted = useCallback(
+    (blogId: string) => {
+      setBlogs((current) => current.filter((blog) => blog.id !== blogId));
+      setMeta((current) => {
+        if (current.total <= 0) {
+          return current;
+        }
+
+        const total = current.total - 1;
+
+        return {
+          ...current,
+          total,
+          totalPages: Math.max(1, Math.ceil(total / current.limit)),
+        };
+      });
+    },
+    []
+  );
+
+  const handleBlogUpdated = useCallback(
+    (updated: AdminBlogListItem) => {
+      const matchesFilter = status === "all" || status === updated.status;
+
+      setBlogs((current) => {
+        if (!matchesFilter) {
+          return current.filter((blog) => blog.id !== updated.id);
+        }
+
+        return current.map((blog) =>
+          blog.id === updated.id ? updated : blog
+        );
+      });
+
+      setMeta((current) => {
+        if (!matchesFilter && current.total > 0) {
+          const total = current.total - 1;
+
+          return {
+            ...current,
+            total,
+            totalPages: Math.max(1, Math.ceil(total / current.limit)),
+          };
+        }
+
+        return current;
+      });
+    },
+    [status]
+  );
+
   if (isLoading) {
     return (
       <div className="flex flex-1 items-center justify-center py-24">
@@ -86,6 +137,8 @@ export function AdminDashboardLoader() {
       status={status}
       page={page}
       error={error}
+      onBlogDeleted={handleBlogDeleted}
+      onBlogUpdated={handleBlogUpdated}
     />
   );
 }
