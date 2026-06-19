@@ -17,7 +17,7 @@ import {
   logoutUser,
   registerUser,
 } from "@/lib/api/auth";
-import { AUTH_SESSION_EXPIRED_EVENT } from "@/constants/config";
+import { AUTH_LOGOUT_FLAG, AUTH_SESSION_EXPIRED_EVENT } from "@/constants/config";
 import { ApiError } from "@/lib/api/apiError";
 import type { UserProfile } from "@/types/auth";
 
@@ -74,6 +74,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    if (
+      typeof window !== "undefined" &&
+      sessionStorage.getItem(AUTH_LOGOUT_FLAG) === "1"
+    ) {
+      sessionStorage.removeItem(AUTH_LOGOUT_FLAG);
+      setUser(null);
+      setIsLoading(false);
+      return;
+    }
+
     refresh();
   }, [refresh]);
 
@@ -132,6 +142,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(async () => {
     authGenerationRef.current += 1;
+
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem(AUTH_LOGOUT_FLAG, "1");
+    }
+
     await logoutUser();
     setUser(null);
     setIsLoading(false);

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useId } from "react";
 
 import { SearchBar } from "@/components/blog/SearchBar";
@@ -29,11 +30,12 @@ export function SiteHeader({
   className,
 }: SiteHeaderProps) {
   const searchId = useId();
+  const router = useRouter();
   const { user, isLoading, logout } = useAuth();
 
   const handleLogout = async () => {
     await logout();
-    window.location.href = "/";
+    router.push("/");
   };
 
   return (
