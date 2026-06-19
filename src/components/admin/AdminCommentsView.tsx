@@ -27,6 +27,7 @@ type AdminCommentsViewProps = {
   status: AdminCommentStatusFilter;
   page: number;
   error?: string | null;
+  onCommentUpdated: (comment: AdminCommentListItem) => void;
 };
 
 function buildCommentsHref(status: AdminCommentStatusFilter, page = 1) {
@@ -44,6 +45,7 @@ export function AdminCommentsView({
   status,
   page,
   error = null,
+  onCommentUpdated,
 }: AdminCommentsViewProps) {
   const router = useRouter();
   const start = meta.total === 0 ? 0 : (meta.page - 1) * meta.limit + 1;
@@ -87,7 +89,10 @@ export function AdminCommentsView({
           <ul className="flex list-none flex-col gap-4">
             {comments.map((comment) => (
               <li key={comment.id}>
-                <AdminCommentCard comment={comment} />
+                <AdminCommentCard
+                  comment={comment}
+                  onCommentUpdated={onCommentUpdated}
+                />
               </li>
             ))}
           </ul>

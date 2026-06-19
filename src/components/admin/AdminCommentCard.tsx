@@ -19,9 +19,13 @@ const statusStyles = {
 
 type AdminCommentCardProps = {
   comment: AdminCommentListItem;
+  onCommentUpdated: (comment: AdminCommentListItem) => void;
 };
 
-export function AdminCommentCard({ comment }: AdminCommentCardProps) {
+export function AdminCommentCard({
+  comment,
+  onCommentUpdated,
+}: AdminCommentCardProps) {
   return (
     <article className="surface-card rounded-xl border border-border p-5">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -67,7 +71,10 @@ export function AdminCommentCard({ comment }: AdminCommentCardProps) {
           {formatRelativeTime(comment.createdAt)}
         </time>
 
-        <AdminCommentActions comment={comment} />
+        <AdminCommentActions
+          comment={comment}
+          onCommentUpdated={onCommentUpdated}
+        />
       </footer>
     </article>
   );

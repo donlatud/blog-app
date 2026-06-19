@@ -167,9 +167,8 @@ export function AdminBlogForm({ mode, initialBlog }: AdminBlogFormProps) {
 
     try {
       if (mode === "create") {
-        const blog = await createAdminBlog(payload);
-        router.push(`/admin/blogs/${blog.id}/edit`);
-        router.refresh();
+        await createAdminBlog(payload);
+        router.push("/admin");
         return;
       }
 

@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 import { AdminCommentsView } from "@/components/admin/AdminCommentsView";
-import { BLOG_PAGE_SIZE } from "@/constants/config";
+import { ADMIN_COMMENT_MODERATION_EVENT, BLOG_PAGE_SIZE } from "@/constants/config";
 import { ApiError } from "@/lib/api/apiError";
 import { fetchAdminCommentList } from "@/lib/api/admin/comments";
 import type {
@@ -79,6 +79,37 @@ export function AdminCommentsLoader() {
     };
   }, [page, status]);
 
+  const handleCommentUpdated = useCallback(
+    (updated: AdminCommentListItem) => {
+      const matchesFilter = status === "all" || status === updated.status;
+
+      setComments((current) => {
+        if (!matchesFilter) {
+          return current.filter((comment) => comment.id !== updated.id);
+        }
+
+        return current.map((comment) =>
+          comment.id === updated.id ? updated : comment
+        );
+      });
+
+      setMeta((current) => {
+        if (!matchesFilter && current.total > 0) {
+          return {
+            ...current,
+            total: current.total - 1,
+            totalPages: Math.max(1, Math.ceil((current.total - 1) / current.limit)),
+          };
+        }
+
+        return current;
+      });
+
+      window.dispatchEvent(new Event(ADMIN_COMMENT_MODERATION_EVENT));
+    },
+    [status]
+  );
+
   if (isLoading) {
     return (
       <div className="flex flex-1 items-center justify-center py-24">
@@ -94,6 +125,7 @@ export function AdminCommentsLoader() {
       status={status}
       page={page}
       error={error}
+      onCommentUpdated={handleCommentUpdated}
     />
   );
 }
