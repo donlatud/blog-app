@@ -63,6 +63,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     refresh();
   }, [refresh]);
 
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    const intervalMs = 45 * 60 * 1000;
+    const intervalId = window.setInterval(() => {
+      refresh();
+    }, intervalMs);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [user, refresh]);
+
   const login = useCallback(async (email: string, password: string) => {
     authGenerationRef.current += 1;
     const profile = await loginUser({ email, password });

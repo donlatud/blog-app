@@ -19,6 +19,62 @@ export const apiClient = axios.create({
   },
 });
 
+type RetryableRequestConfig = {
+  _authRetry?: boolean;
+  url?: string;
+};
+
+let refreshSessionPromise: Promise<void> | null = null;
+
+async function refreshAuthSession(): Promise<void> {
+  await apiClient.post("/api/auth/refresh");
+}
+
+apiClient.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    if (!isAxiosError(error)) {
+      return Promise.reject(toApiError(error));
+    }
+
+    const originalRequest = error.config as RetryableRequestConfig | undefined;
+
+    if (
+      !originalRequest ||
+      error.response?.status !== 401 ||
+      originalRequest._authRetry
+    ) {
+      return Promise.reject(toApiError(error));
+    }
+
+    const requestUrl = originalRequest.url ?? "";
+
+    if (
+      requestUrl.includes("/api/auth/refresh") ||
+      requestUrl.includes("/api/auth/login") ||
+      requestUrl.includes("/api/auth/register") ||
+      requestUrl.includes("/api/auth/logout")
+    ) {
+      return Promise.reject(toApiError(error));
+    }
+
+    originalRequest._authRetry = true;
+
+    try {
+      if (!refreshSessionPromise) {
+        refreshSessionPromise = refreshAuthSession().finally(() => {
+          refreshSessionPromise = null;
+        });
+      }
+
+      await refreshSessionPromise;
+      return apiClient.request(originalRequest);
+    } catch {
+      return Promise.reject(toApiError(error));
+    }
+  }
+);
+
 export function toApiError(error: unknown): ApiError {
   if (error instanceof ApiError) {
     return error;

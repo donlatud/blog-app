@@ -57,3 +57,12 @@ export async function fetchCurrentUser(): Promise<UserProfile> {
     throw toApiError(error);
   }
 }
+
+export async function refreshAuthSession(): Promise<UserProfile> {
+  try {
+    const { data } = await apiClient.post<AuthResponse>("/api/auth/refresh");
+    return data.data;
+  } catch (error) {
+    throw toApiError(error);
+  }
+}
