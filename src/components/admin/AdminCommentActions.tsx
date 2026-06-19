@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -11,10 +10,13 @@ import type { AdminCommentListItem } from "@/types/admin";
 
 type AdminCommentActionsProps = {
   comment: AdminCommentListItem;
+  onCommentUpdated: (comment: AdminCommentListItem) => void;
 };
 
-export function AdminCommentActions({ comment }: AdminCommentActionsProps) {
-  const router = useRouter();
+export function AdminCommentActions({
+  comment,
+  onCommentUpdated,
+}: AdminCommentActionsProps) {
   const [isUpdating, setIsUpdating] = useState(false);
 
   const showApprove = comment.status !== "approved";
@@ -24,8 +26,8 @@ export function AdminCommentActions({ comment }: AdminCommentActionsProps) {
     setIsUpdating(true);
 
     try {
-      await patchAdminCommentStatus(comment.id, "approved");
-      router.refresh();
+      const updated = await patchAdminCommentStatus(comment.id, "approved");
+      onCommentUpdated(updated);
     } catch (error) {
       window.alert(
         error instanceof ApiError
@@ -41,8 +43,8 @@ export function AdminCommentActions({ comment }: AdminCommentActionsProps) {
     setIsUpdating(true);
 
     try {
-      await patchAdminCommentStatus(comment.id, "rejected");
-      router.refresh();
+      const updated = await patchAdminCommentStatus(comment.id, "rejected");
+      onCommentUpdated(updated);
     } catch (error) {
       window.alert(
         error instanceof ApiError

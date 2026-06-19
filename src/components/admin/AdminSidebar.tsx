@@ -10,6 +10,7 @@ import {
   PlusSquare,
 } from "lucide-react";
 
+import { ADMIN_COMMENT_MODERATION_EVENT } from "@/constants/config";
 import { useAuth } from "@/context/AuthProvider";
 import { fetchAdminCommentPendingCount } from "@/lib/api/admin/comments";
 import { cn } from "@/lib/utils";
@@ -56,20 +57,30 @@ export function AdminSidebar({
 
     let cancelled = false;
 
-    fetchAdminCommentPendingCount()
-      .then((count) => {
-        if (!cancelled) {
-          setPendingCount(count);
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setPendingCount(null);
-        }
-      });
+    const loadPendingCount = () => {
+      fetchAdminCommentPendingCount()
+        .then((count) => {
+          if (!cancelled) {
+            setPendingCount(count);
+          }
+        })
+        .catch(() => {
+          if (!cancelled) {
+            setPendingCount(null);
+          }
+        });
+    };
+
+    loadPendingCount();
+
+    window.addEventListener(ADMIN_COMMENT_MODERATION_EVENT, loadPendingCount);
 
     return () => {
       cancelled = true;
+      window.removeEventListener(
+        ADMIN_COMMENT_MODERATION_EVENT,
+        loadPendingCount
+      );
     };
   }, [user, pathname]);
 

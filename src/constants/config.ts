@@ -3,3 +3,5 @@ export const API_BASE_URL =
 
 /** ตรงกับโจทย์ take-home และ `PAGINATION.DEFAULT_LIMIT` ฝั่ง backend */
 export const BLOG_PAGE_SIZE = 10;
+
+export const ADMIN_COMMENT_MODERATION_EVENT = "admin-comment-moderation";
