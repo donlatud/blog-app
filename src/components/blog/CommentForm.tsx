@@ -41,6 +41,11 @@ export function CommentForm({ slug, onSubmitted }: CommentFormProps) {
       setBody("");
       onSubmitted();
     } catch (err) {
+      if (err instanceof ApiError && err.status === 401) {
+        setError("Your session has expired. Please sign in again to comment.");
+        return;
+      }
+
       setError(
         err instanceof ApiError
           ? err.message

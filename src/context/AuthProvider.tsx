@@ -17,7 +17,21 @@ import {
   logoutUser,
   registerUser,
 } from "@/lib/api/auth";
+import { AUTH_SESSION_EXPIRED_EVENT } from "@/constants/config";
+import { ApiError } from "@/lib/api/apiError";
 import type { UserProfile } from "@/types/auth";
+
+async function verifySessionAfterAuth(): Promise<UserProfile> {
+  try {
+    return await fetchCurrentUser();
+  } catch {
+    throw new ApiError(
+      401,
+      "SESSION_NOT_PERSISTED",
+      "Unable to start a session. Please allow cookies for this site and try signing in again."
+    );
+  }
+}
 
 type AuthContextValue = {
   user: UserProfile | null;
@@ -64,6 +78,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [refresh]);
 
   useEffect(() => {
+    const handleSessionExpired = () => {
+      authGenerationRef.current += 1;
+      setUser(null);
+      setIsLoading(false);
+    };
+
+    window.addEventListener(AUTH_SESSION_EXPIRED_EVENT, handleSessionExpired);
+
+    return () => {
+      window.removeEventListener(
+        AUTH_SESSION_EXPIRED_EVENT,
+        handleSessionExpired
+      );
+    };
+  }, []);
+
+  useEffect(() => {
     if (!user) {
       return;
     }
@@ -80,7 +111,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback(async (email: string, password: string) => {
     authGenerationRef.current += 1;
-    const profile = await loginUser({ email, password });
+    await loginUser({ email, password });
+    const profile = await verifySessionAfterAuth();
     setUser(profile);
     setIsLoading(false);
     return profile;
@@ -89,7 +121,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const register = useCallback(
     async (email: string, password: string, displayName: string) => {
       authGenerationRef.current += 1;
-      const profile = await registerUser({ email, password, displayName });
+      await registerUser({ email, password, displayName });
+      const profile = await verifySessionAfterAuth();
       setUser(profile);
       setIsLoading(false);
       return profile;
