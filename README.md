@@ -54,8 +54,8 @@ src/
 
 | Role | Email | Password |
 |---|---|---|
-| Member | `member.demo@gmail.com` | `password123` |
-| Admin | Create in Supabase Auth, then run `seed-admin.sql` | (your choice) |
+| Member | `demo@gmail.com` | `pass1234` |
+| Admin | `admin@gmail.com` | `pass1234` |
 
 ## Deploy to Vercel
 
