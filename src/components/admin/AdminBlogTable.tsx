@@ -6,6 +6,8 @@ import type { AdminBlogListItem } from "@/types/admin";
 
 type AdminBlogTableProps = {
   blogs: AdminBlogListItem[];
+  onBlogDeleted: (blogId: string) => void;
+  onBlogUpdated: (blog: AdminBlogListItem) => void;
 };
 
 function StatusBadge({ status }: { status: AdminBlogListItem["status"] }) {
@@ -24,7 +26,11 @@ function StatusBadge({ status }: { status: AdminBlogListItem["status"] }) {
   );
 }
 
-export function AdminBlogTable({ blogs }: AdminBlogTableProps) {
+export function AdminBlogTable({
+  blogs,
+  onBlogDeleted,
+  onBlogUpdated,
+}: AdminBlogTableProps) {
   if (blogs.length === 0) {
     return (
       <p className="px-6 py-12 text-center text-sm text-muted-foreground">
@@ -93,7 +99,11 @@ export function AdminBlogTable({ blogs }: AdminBlogTableProps) {
                 {blog.viewCount.toLocaleString("en-US")}
               </td>
               <td className="px-6 py-4">
-                <AdminBlogRowActions blog={blog} />
+                <AdminBlogRowActions
+                  blog={blog}
+                  onBlogDeleted={onBlogDeleted}
+                  onBlogUpdated={onBlogUpdated}
+                />
               </td>
             </tr>
           ))}

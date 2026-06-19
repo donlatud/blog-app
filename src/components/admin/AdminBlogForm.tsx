@@ -22,8 +22,10 @@ import {
 
 import { ImageUploadField } from "@/components/admin/ImageUploadField";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { EXCERPT_MAX, validateExcerpt } from "@/constants/blog";
 import {
   createAdminBlog,
   deleteAdminBlog,
@@ -37,6 +39,8 @@ import { cn } from "@/lib/utils";
 import type { AdminBlogDetail, AdminBlogPayload } from "@/types/admin";
 
 const MAX_ADDITIONAL_IMAGES = 6;
+
+type FormConfirmAction = "delete" | "status" | null;
 
 type AdminBlogFormProps = {
   mode: "create" | "edit";
@@ -86,9 +90,12 @@ export function AdminBlogForm({ mode, initialBlog }: AdminBlogFormProps) {
     initialBlog?.status === "published"
   );
   const [error, setError] = useState<string | null>(null);
+  const [excerptError, setExcerptError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isGalleryUploading, setIsGalleryUploading] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<FormConfirmAction>(null);
+  const [pendingPublished, setPendingPublished] = useState<boolean | null>(null);
 
   const pageTitle = mode === "create" ? "Create article" : "Edit article";
 
@@ -153,6 +160,15 @@ export function AdminBlogForm({ mode, initialBlog }: AdminBlogFormProps) {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
+
+    const excerptValidationError = validateExcerpt(excerpt);
+
+    if (excerptValidationError) {
+      setExcerptError(excerptValidationError);
+      return;
+    }
+
+    setExcerptError(null);
     setIsSubmitting(true);
 
     const payload = buildPayload({
@@ -193,29 +209,39 @@ export function AdminBlogForm({ mode, initialBlog }: AdminBlogFormProps) {
       return;
     }
 
-    const confirmed = window.confirm(
-      "Delete this article? This action cannot be undone."
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
     setIsDeleting(true);
     setError(null);
 
     try {
       await deleteAdminBlog(initialBlog.id);
       router.push("/admin");
-      router.refresh();
     } catch (err) {
       setError(
         err instanceof ApiError ? err.message : "Unable to delete this article."
       );
     } finally {
       setIsDeleting(false);
+      setConfirmAction(null);
     }
   };
+
+  const handleStatusConfirm = () => {
+    if (pendingPublished !== null) {
+      setIsPublished(pendingPublished);
+    }
+
+    setPendingPublished(null);
+    setConfirmAction(null);
+  };
+
+  const handleOpenStatusConfirm = () => {
+    setPendingPublished(!isPublished);
+    setConfirmAction("status");
+  };
+
+  const isDeleteDialog = confirmAction === "delete";
+  const isStatusDialog = confirmAction === "status";
+  const nextPublished = pendingPublished ?? isPublished;
 
   const metaItems = useMemo(() => {
     if (!initialBlog) {
@@ -280,43 +306,54 @@ export function AdminBlogForm({ mode, initialBlog }: AdminBlogFormProps) {
             <label htmlFor="slug" className="text-label text-foreground">
               URL slug
             </label>
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <div className="flex min-w-0 flex-1 items-center rounded-lg border border-border bg-background">
-                <span className="shrink-0 border-r border-border px-3 py-3 text-sm text-muted-foreground">
-                  /blog/
-                </span>
-                <input
-                  id="slug"
-                  name="slug"
-                  value={slug}
-                  onChange={(event) => {
-                    setSlugTouched(true);
-                    setSlug(event.target.value);
-                  }}
-                  placeholder="url-slug-here"
-                  className="h-11 min-w-0 flex-1 bg-transparent px-3 text-sm text-foreground outline-none"
-                  required
-                />
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                className="h-11 shrink-0"
-                onClick={() => setSlug(slugifyTitle(title))}
-              >
-                Generate from title
-              </Button>
+            <div className="flex min-w-0 items-center rounded-lg border border-border bg-background">
+              <span className="shrink-0 border-r border-border px-3 py-3 text-sm text-muted-foreground">
+                /blog/
+              </span>
+              <input
+                id="slug"
+                name="slug"
+                value={slug}
+                onChange={(event) => {
+                  setSlugTouched(true);
+                  setSlug(event.target.value);
+                }}
+                placeholder="url-slug-here"
+                className="h-11 min-w-0 flex-1 bg-transparent px-3 text-sm text-foreground outline-none"
+                required
+              />
             </div>
           </div>
 
-          <Textarea
-            label="Excerpt"
-            name="excerpt"
-            placeholder="Write a short summary..."
-            value={excerpt}
-            onChange={(event) => setExcerpt(event.target.value)}
-            className="min-h-24"
-          />
+          <div>
+            <Textarea
+              label="Excerpt"
+              name="excerpt"
+              placeholder="Write a short summary..."
+              value={excerpt}
+              onChange={(event) => {
+                setExcerpt(event.target.value);
+
+                if (excerptError) {
+                  setExcerptError(null);
+                }
+              }}
+              maxLength={EXCERPT_MAX}
+              error={excerptError ?? undefined}
+              className="min-h-24"
+            />
+            <p
+              className={cn(
+                "mt-2 text-right text-xs",
+                excerpt.length >= EXCERPT_MAX
+                  ? "text-destructive"
+                  : "text-muted-foreground"
+              )}
+              aria-live="polite"
+            >
+              {excerpt.length}/{EXCERPT_MAX}
+            </p>
+          </div>
         </section>
 
         <section className="surface-card space-y-4 p-6">
@@ -441,7 +478,7 @@ export function AdminBlogForm({ mode, initialBlog }: AdminBlogFormProps) {
             type="button"
             role="switch"
             aria-checked={isPublished}
-            onClick={() => setIsPublished((current) => !current)}
+            onClick={handleOpenStatusConfirm}
             className={cn(
               "relative h-7 w-12 rounded-full transition-colors",
               isPublished ? "bg-foreground" : "bg-muted"
@@ -464,7 +501,7 @@ export function AdminBlogForm({ mode, initialBlog }: AdminBlogFormProps) {
             type="button"
             variant="outline"
             className="border-destructive text-destructive hover:bg-destructive/5"
-            onClick={handleDelete}
+            onClick={() => setConfirmAction("delete")}
             disabled={isDeleting || isSubmitting}
           >
             <Trash2 aria-hidden="true" className="size-4" />
@@ -492,6 +529,49 @@ export function AdminBlogForm({ mode, initialBlog }: AdminBlogFormProps) {
           </Button>
         </div>
       </footer>
+
+      <ConfirmDialog
+        open={confirmAction !== null}
+        title={
+          isDeleteDialog
+            ? "Delete article?"
+            : nextPublished
+              ? "Publish article?"
+              : "Save as draft?"
+        }
+        description={
+          isDeleteDialog
+            ? `Delete "${title || "this article"}"? This action cannot be undone.`
+            : nextPublished
+              ? "Publish this article? It will be visible on the public site."
+              : "Save this article as a draft? It will be hidden from the public site."
+        }
+        confirmLabel={
+          isDeleteDialog
+            ? "Delete"
+            : nextPublished
+              ? "Publish"
+              : "Save as draft"
+        }
+        confirmVariant={isDeleteDialog ? "destructive" : "default"}
+        isLoading={isDeleting}
+        onConfirm={() => {
+          if (isDeleteDialog) {
+            void handleDelete();
+            return;
+          }
+
+          if (isStatusDialog) {
+            handleStatusConfirm();
+          }
+        }}
+        onCancel={() => {
+          if (!isDeleting) {
+            setPendingPublished(null);
+            setConfirmAction(null);
+          }
+        }}
+      />
     </form>
   );
 }
